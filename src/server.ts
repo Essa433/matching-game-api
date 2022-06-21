@@ -1,9 +1,19 @@
 import fastifyAutoload from '@fastify/autoload';
 import fastifySwagger from '@fastify/swagger';
+import { ajvTypeBoxPlugin, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastify from 'fastify';
 import { join } from 'path';
 
-export const server = fastify({ logger: true });
+export const server = fastify({
+	logger: true,
+	ajv: {
+		customOptions: {
+			removeAdditional: 'all',
+			ownProperties: true,
+		},
+		plugins: [ajvTypeBoxPlugin],
+	},
+}).withTypeProvider<TypeBoxTypeProvider>();
 
 server.register(fastifySwagger, {
 	routePrefix: '/docs',
