@@ -1,13 +1,28 @@
-import { server } from './server';
+import { EmployeeRole, OrderPayment } from '@prisma/client';
+import { connectDb, prismaClient } from './prisma';
+import { listen } from './server';
 
-const port: any = process.env.PORT ?? process.env.$PORT ?? 3002;
+async function start() {
+	await connectDb();
+	listen();
+	test();
+}
+start();
 
-server
-	.listen({
-		port: port,
-		host: '0.0.0.0',
-	})
-	.catch((err) => {
-		server.log.error(err);
-		process.exit(1);
+async function test() {
+	await prismaClient.order.create({
+		data: {
+			meals: [],
+			togo: true,
+			date: new Date(),
+			rating: -1,
+			payment: OrderPayment.card,
+			employee: {
+				create: {
+					name: 'Ahlam',
+					role: EmployeeRole.chief,
+				},
+			},
+		},
 	});
+}
