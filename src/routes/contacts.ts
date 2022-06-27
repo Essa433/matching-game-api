@@ -70,8 +70,12 @@ export default async function (server: FastifyInstance) {
 			}),
 		},
 		handler: async (request, reply) => {
+			const { id } = request.params as any;
 			const newContact: any = request.body;
-			return upsertContactController(contacts, newContact);
+			return upsertContactController(contacts, {
+				id,
+				...newContact,
+			});
 		},
 	});
 
