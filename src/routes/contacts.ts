@@ -1,28 +1,43 @@
-import { Meal, Menu } from '@prisma/client';
+import { Contact, Meal, Menu } from '@prisma/client';
 import { Static, Type } from '@sinclair/typebox';
+import { ObjectId } from 'bson';
 import { FastifyInstance } from 'fastify';
-import { upsertContactController } from '../controllers/upsert-contact';
+import Fuse from 'fuse.js';
+import _ from 'lodash';
+import { addAuthorization } from '../hooks/auth';
 import { prismaClient } from '../prisma';
 
 const Contact = Type.Object({
-	id: Type.String({ format: 'uuid' }),
+	contact_id: Type.String(),
 	name: Type.String(),
 	phone: Type.String(),
 });
-type Contact = Static<typeof Contact>;
+
+const ContactWithoutId = Type.Object({
+	name: Type.String(),
+	phone: Type.String(),
+});
+type ContactWithoutId = Static<typeof ContactWithoutId>;
+
+const PartialContactWithoutId = Type.Partial(ContactWithoutId);
+type PartialContactWithoutId = Static<typeof PartialContactWithoutId>;
 
 const GetContactsQuery = Type.Object({
-	name: Type.Optional(Type.String()),
+	text: Type.Optional(Type.String()),
 });
 type GetContactsQuery = Static<typeof GetContactsQuery>;
 
+const ContactParams = Type.Object({
+	contact_id: Type.String(),
+});
+type ContactParams = Static<typeof ContactParams>;
+
 export let contacts: Contact[] = [
-	{ id: '3fa85f64-5717-4562-b3fc-2c963f66afa6', name: 'Lamis', phone: '0511111111' },
-	{ id: '3fa85f64-5717-4562-b3fc-2c963f66afa5', name: 'Lamis', phone: '0511111111' },
-	{ id: '3fa85f64-5717-4562-b3fc-2c963f66afa2', name: 'Amani', phone: '0511111111' },
-	{ id: '3fa85f64-5717-4562-b3fc-2c963f66afa1', name: 'Amani', phone: '0511111111' },
-	{ id: '3fa85f64-5717-4562-b3fc-2c963f66afa3', name: 'Amal', phone: '0511111111' },
-	{ id: '3', name: 'Azizah', phone: '123123123' },
+	{ contact_id: new ObjectId().toHexString(), name: 'Lamis', phone: '0511111111' },
+	{ contact_id: new ObjectId().toHexString(), name: 'Lamis', phone: '0511111111' },
+	{ contact_id: new ObjectId().toHexString(), name: 'Amani', phone: '0511111111' },
+	{ contact_id: new ObjectId().toHexString(), name: 'Amani', phone: '0511111111' },
+	{ contact_id: new ObjectId().toHexString(), name: 'Saleh', phone: '0511111111' },
 ];
 
 const Meal = Type.Object({
@@ -44,6 +59,26 @@ const Menu = Type.Object({
 });
 
 export default async function (server: FastifyInstance) {
+	addAuthorization(server);
+
+	/// Create contact without the need for contact_id
+	server.route({
+		method: 'POST',
+		url: '/contacts',
+		schema: {
+			summary: 'Creates new contact',
+			tags: ['Contacts'],
+			body: ContactWithoutId,
+		},
+		handler: async (request, reply) => {
+			const contact = request.body as ContactWithoutId;
+			return await prismaClient.contact.create({
+				data: contact,
+			});
+		},
+	});
+
+	/// Upsert one but all fields are required
 	server.route({
 		method: 'PUT',
 		url: '/contacts',
@@ -53,71 +88,93 @@ export default async function (server: FastifyInstance) {
 			body: Contact,
 		},
 		handler: async (request, reply) => {
-			const newContact: any = request.body;
-			return upsertContactController(contacts, newContact);
+			const contact = request.body as Contact;
+			if (!ObjectId.isValid(contact.contact_id)) {
+				reply.badRequest('contact_id should be an ObjectId!');
+			} else {
+				return await prismaClient.contact.upsert({
+					where: { contact_id: contact.contact_id },
+					create: contact,
+					update: _.omit(contact, ['contact_id']),
+				});
+			}
 		},
 	});
 
+	/// Update one by id
 	server.route({
 		method: 'PATCH',
-		url: '/contacts/:id',
+		url: '/contacts/:contact_id',
 		schema: {
 			summary: 'Update a contact by id + you dont need to pass all properties',
 			tags: ['Contacts'],
-			body: Type.Partial(Contact),
-			params: Type.Object({
-				id: Type.String({ format: 'uuid' }),
-			}),
+			body: PartialContactWithoutId,
+			params: ContactParams,
 		},
 		handler: async (request, reply) => {
-			const { id } = request.params as any;
-			const newContact: any = request.body;
-			return upsertContactController(contacts, {
-				id,
-				...newContact,
+			const { contact_id } = request.params as ContactParams;
+			if (!ObjectId.isValid(contact_id)) {
+				reply.badRequest('contact_id should be an ObjectId!');
+				return;
+			}
+
+			const contact = request.body as PartialContactWithoutId;
+
+			return prismaClient.contact.update({
+				where: { contact_id },
+				data: contact,
 			});
 		},
 	});
 
+	/// Delete one by id
 	server.route({
 		method: 'DELETE',
-		url: '/contacts/:id',
+		url: '/contacts/:contact_id',
 		schema: {
 			summary: 'Deletes a contact',
 			tags: ['Contacts'],
-			params: Type.Object({
-				id: Type.String({ format: 'uuid' }),
-			}),
+			params: ContactParams,
 		},
 		handler: async (request, reply) => {
-			const id = (request.params as any).id as string;
+			const { contact_id } = request.params as ContactParams;
+			if (!ObjectId.isValid(contact_id)) {
+				reply.badRequest('contact_id should be an ObjectId!');
+				return;
+			}
 
-			contacts = contacts.filter((c) => c.id !== id);
-
-			return contacts;
+			return prismaClient.contact.delete({
+				where: { contact_id },
+			});
 		},
 	});
 
+	/// Get one by id
 	server.route({
 		method: 'GET',
-		url: '/contacts/:id',
+		url: '/contacts/:contact_id',
 		schema: {
 			summary: 'Returns one contact or null',
 			tags: ['Contacts'],
-			params: Type.Object({
-				id: Type.String({ format: 'uuid' }),
-			}),
+			params: ContactParams,
 			response: {
 				'2xx': Type.Union([Contact, Type.Null()]),
 			},
 		},
 		handler: async (request, reply) => {
-			const id = (request.params as any).id as string;
+			const { contact_id } = request.params as ContactParams;
+			if (!ObjectId.isValid(contact_id)) {
+				reply.badRequest('contact_id should be an ObjectId!');
+				return;
+			}
 
-			return contacts.find((c) => c.id === id) ?? null;
+			return prismaClient.contact.findFirst({
+				where: { contact_id },
+			});
 		},
 	});
 
+	/// Get all contacts or search by name
 	server.route({
 		method: 'GET',
 		url: '/contacts',
@@ -132,11 +189,22 @@ export default async function (server: FastifyInstance) {
 		handler: async (request, reply) => {
 			const query = request.query as GetContactsQuery;
 
-			if (query.name) {
-				return contacts.filter((c) => c.name.includes(query.name ?? ''));
-			} else {
-				return contacts;
-			}
+			const contacts = await prismaClient.contact.findMany();
+			if (!query.text) return contacts;
+
+			const fuse = new Fuse(contacts, {
+				includeScore: true,
+				isCaseSensitive: false,
+				includeMatches: true,
+				findAllMatches: true,
+				threshold: 1,
+				keys: ['name', 'phone'],
+			});
+
+			console.log(JSON.stringify(fuse.search(query.text)));
+
+			const result: Contact[] = fuse.search(query.text).map((r) => r.item);
+			return result;
 		},
 	});
 

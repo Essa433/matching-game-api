@@ -92,3 +92,9 @@ enum MealSize {
   medium
   large
 }
+
+model Contact {
+  contact_id String @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  phone      String
+}
