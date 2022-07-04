@@ -11,11 +11,12 @@ datasource db {
 }
 
 model User {
-  user_id String  @id @default(auto()) @map("_id") @db.ObjectId
-  email   String
-  phone   String
-  name    String
-  orders  Order[]
+  user_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+  email    String
+  phone    String
+  password String
+  name     String
+  orders   Order[]
 
   @@map("users")
 }

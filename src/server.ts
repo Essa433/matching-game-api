@@ -1,4 +1,5 @@
 import fastifyAutoload from '@fastify/autoload';
+import fastifyJwt from '@fastify/jwt';
 import fastifySensible from '@fastify/sensible';
 import fastifySwagger from '@fastify/swagger';
 import { ajvTypeBoxPlugin, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
@@ -15,6 +16,10 @@ export const server = fastify({
 		plugins: [ajvTypeBoxPlugin],
 	},
 }).withTypeProvider<TypeBoxTypeProvider>();
+
+server.register(fastifyJwt, {
+	secret: 'gg',
+});
 
 server.register(fastifySwagger, {
 	routePrefix: '/docs',
