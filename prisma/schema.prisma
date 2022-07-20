@@ -99,3 +99,9 @@ model Contact {
   name       String
   phone      String
 }
+
+model Task {
+  task_id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  input      String
+  is_checked Boolean
+}

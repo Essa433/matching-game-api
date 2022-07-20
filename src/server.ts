@@ -1,4 +1,5 @@
 import fastifyAutoload from '@fastify/autoload';
+import fastifyCors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import fastifySensible from '@fastify/sensible';
 import fastifySwagger from '@fastify/swagger';
@@ -16,6 +17,8 @@ export const server = fastify({
 		plugins: [ajvTypeBoxPlugin],
 	},
 }).withTypeProvider<TypeBoxTypeProvider>();
+
+server.register(fastifyCors);
 
 server.register(fastifyJwt, {
 	secret: 'gg',
