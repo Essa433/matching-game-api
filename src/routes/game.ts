@@ -1,4 +1,3 @@
-import { MatchingGame } from '@prisma/client';
 import { Type } from '@sinclair/typebox';
 import { ObjectId } from 'bson';
 import { FastifyInstance } from 'fastify';
