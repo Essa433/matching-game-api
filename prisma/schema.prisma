@@ -10,98 +10,108 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  user_id  String  @id @default(auto()) @map("_id") @db.ObjectId
-  email    String
-  phone    String
-  password String
-  name     String
-  orders   Order[]
+// model User {
+//   user_id  String  @id @default(auto()) @map("_id") @db.ObjectId
+//   email    String
+//   phone    String
+//   password String
+//   name     String
+//   orders   Order[]
 
-  @@map("users")
-}
+//   @@map("users")
+// }
 
-model Employee {
-  employee_id String       @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  role        EmployeeRole
-  orders      Order[]
+// model Employee {
+//   employee_id String       @id @default(auto()) @map("_id") @db.ObjectId
+//   name        String
+//   role        EmployeeRole
+//   orders      Order[]
 
-  @@map("employees")
-}
+//   @@map("employees")
+// }
 
-enum EmployeeRole {
-  manager
-  cashier
-  chief
-  waiter
-}
+// enum EmployeeRole {
+//   manager
+//   cashier
+//   chief
+//   waiter
+// }
 
-model Order {
-  order_id String       @id @default(auto()) @map("_id") @db.ObjectId
-  meals    Meal[]
-  date     DateTime
-  togo     Boolean
-  rating   Int
-  payment  OrderPayment
+// model Order {
+//   order_id String       @id @default(auto()) @map("_id") @db.ObjectId
+//   meals    Meal[]
+//   date     DateTime
+//   togo     Boolean
+//   rating   Int
+//   payment  OrderPayment
 
-  user_id String? @db.ObjectId
-  User    User?   @relation(fields: [user_id], references: [user_id])
+//   user_id String? @db.ObjectId
+//   User    User?   @relation(fields: [user_id], references: [user_id])
 
-  employee    Employee @relation(fields: [employee_id], references: [employee_id])
-  employee_id String   @db.ObjectId
+//   employee    Employee @relation(fields: [employee_id], references: [employee_id])
+//   employee_id String   @db.ObjectId
 
-  @@map("orders")
-}
+//   @@map("orders")
+// }
 
-enum OrderPayment {
-  cash
-  card
-  voucher
-}
+// enum OrderPayment {
+//   cash
+//   card
+//   voucher
+// }
 
-model Menu {
-  menu_id         String @id @default(auto()) @map("_id") @db.ObjectId
-  title           String
-  restaurant_name String
-  meals           Meal[]
+// model Menu {
+//   menu_id         String @id @default(auto()) @map("_id") @db.ObjectId
+//   title           String
+//   restaurant_name String
+//   meals           Meal[]
 
-  @@map("menus")
-}
+//   @@map("menus")
+// }
 
-type Meal {
-  meal_id     String   @map("_id") @db.ObjectId
-  title       String
-  description String
-  type        MealType
-  price       Float
-  calories    Int
-  image_url   String
-  size        MealSize
-}
+// type Meal {
+//   meal_id     String   @map("_id") @db.ObjectId
+//   title       String
+//   description String
+//   type        MealType
+//   price       Float
+//   calories    Int
+//   image_url   String
+//   size        MealSize
+// }
 
-enum MealType {
-  drink
-  chicken
-  meat
-  fish
-  sweet
-}
+// enum MealType {
+//   drink
+//   chicken
+//   meat
+//   fish
+//   sweet
+// }
 
-enum MealSize {
-  small
-  medium
-  large
-}
+// enum MealSize {
+//   small
+//   medium
+//   large
+// }
 
-model Contact {
-  contact_id String @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  phone      String
-}
+// model Contact {
+//   contact_id String @id @default(auto()) @map("_id") @db.ObjectId
+//   name       String
+//   phone      String
+// }
 
-model Task {
-  task_id    String  @id @default(auto()) @map("_id") @db.ObjectId
-  input      String
-  is_checked Boolean
+// model Task {
+//   task_id    String  @id @default(auto()) @map("_id") @db.ObjectId
+//   input      String
+//   is_checked Boolean
+// }
+
+model MatchingGame {
+  game_id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  created_at            DateTime @default(now())
+  name                  String
+  attempts              String
+  Mistakes              String
+  complation_parcentage String
+  total_time            String
 }

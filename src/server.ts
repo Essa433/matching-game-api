@@ -30,7 +30,7 @@ server.register(fastifySwagger, {
 	mode: 'dynamic',
 	openapi: {
 		info: {
-			title: 'Red3lay API',
+			title: 'Matching Game',
 			version: '0.0.1',
 		},
 		security: [
@@ -56,7 +56,7 @@ server.register(fastifyAutoload, {
 	dir: join(__dirname, 'routes'),
 });
 
-const port: any = process.env.PORT ?? process.env.$PORT ?? 3002;
+const port: any = process.env.PORT ?? process.env.$PORT ?? 3003;
 
 export function listen() {
 	server
