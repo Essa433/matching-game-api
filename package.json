@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"dev": "nodemon -r dotenv/config src/index.ts | pino-colada",
+		"dev": "nodemon -r dotenv/config src/index.ts",
 		"build": "rm -rf dist && tsc",
 		"start": "node dist/index.js"
 	},
